@@ -1,2 +1,2 @@
 # mipi-rffe-python
-Python implementations of the MIPI RFFE Reference Library
+Python implementation of the MIPI RFFE Reference Library
