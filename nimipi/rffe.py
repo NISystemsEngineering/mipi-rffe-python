@@ -157,7 +157,8 @@ def __burst_command(session, pin_name, command, register_data):
     if command == __Command.REG_0_WRITE or command == __Command.REG_WRITE:
         return
     if command == __Command.REG_READ:
-        return session.fetch_capture_waveform("", source_waveform_name, register_data.byte_count, 1)
+        capture_waveform = session.fetch_capture_waveform("", source_waveform_name, register_data.byte_count, 1)
+        return list(capture_waveform[0])
     raise RffeException(5000, "The specified command " + command.name + " is not supported.")
 
 
