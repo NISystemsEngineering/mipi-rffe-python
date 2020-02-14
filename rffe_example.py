@@ -18,11 +18,22 @@ rffe.load_patterns(digital, pattern_directory_path)
 
 digital.channels["RFFEVIO"].ppmu_configure_output_function(nidigital.PPMUOutputFunction.VOLTAGE.value)
 digital.channels["RFFEVIO"].ppmu_configure_voltage_level(1.8)
-# digital.channels["RFFEVIO"].ppmu_configure_current_limit_range(0.032)
+digital.channels["RFFEVIO"].ppmu_configure_current_limit_range(0.032)
 digital.channels["RFFEVIO"].ppmu_source()
 
-rffe.multi_command(digital, "RFFEDATA", Rfmd8090.Band1Apt, [])
+multi_command_write = Rfmd8090.Band1Apt
+multi_command_read = Rfmd8090.Band1Apt
+multi_read_data = rffe.multi_command(digital, "RFFEDATA", multi_command_write, multi_command_read)
 
-input("Press any key to exit.")
+for register_data in multi_command_write:
+    print("Slave: 0x{:02X}".format(register_data.slave_address) + \
+        " | Register: 0x{:02X}".format(register_data.register_address) + \
+        " | WriteData: " + ", ".join(map("0x{:02X}".format, register_data.write_data)))
+print('-' * 50)
+for register_data, read_data in zip(multi_command_read, multi_read_data):
+    print("Slave: 0x{:02X}".format(register_data.slave_address) + \
+        " | Register: 0x{:02X}".format(register_data.register_address) + \
+        " | ReadData: " + ", ".join(map("0x{:02X}".format, read_data)))
+print('-' * 50)
 
 digital.close()
