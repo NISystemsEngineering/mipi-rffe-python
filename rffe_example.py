@@ -2,7 +2,7 @@ import nidigital
 from nimipi import rffe
 import rfmd8090
 
-session = nidigital.Session("PXIe-6570", True, False)
+session = nidigital.Session("PXIe-6570", True, True)
 
 rffe.load_digital_project(session)
 rffe.enable_vio(session)
