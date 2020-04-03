@@ -291,7 +291,7 @@ class _RffeRegReadExtCommand(__RffeExtendedCommand):
     def burst(self, session: nidigital.Session, bus_number=0) -> None:
         super().burst(session, bus_number)
         capture_data = session.fetch_capture_waveform(_format_site_list(bus_number), self.name, self.byte_count, 10)
-        self._register_data = list(capture_data[0])
+        self._register_data = list(capture_data[bus_number])
 
 
 class _RffeRegReadExtLongCommand(_RffeRegReadExtCommand):
