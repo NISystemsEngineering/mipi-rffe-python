@@ -47,8 +47,8 @@ def _format_into_vector_statement() -> str:
 
 
 def _raise_out_of_range_error(parameter_name: str, lower_limit: str, upper_limit: str, as_found: str) -> RffeException:
-    raise RffeException(5000, f"{parameter_name} out of range."
-                        f"\nExpected [{lower_limit}, {upper_limit}] but found {as_found}.")
+    raise RffeException(5000, f"{parameter_name} out of range. "
+                              f"Expected [{lower_limit}, {upper_limit}] but found {as_found}.")
 
 
 class _RffeCommand:
@@ -102,7 +102,7 @@ class _RffeCommand:
     def register_address_limit(self) -> int:
         return (1 << self.register_address_field_width) - 1
 
-    def burst(self, session: nidigital.Session, bus_number=0):
+    def burst(self, session: nidigital.Session, bus_number=0) -> None:
         self._data_check()
         self._create_waveforms(session)
         source_waveform = self._build_source_waveform()
@@ -118,14 +118,14 @@ class _RffeCommand:
         data_frame_vectors = self._generate_data_frame_vectors()
         return header_vectors + command_frame_vectors + address_frame_vectors + data_frame_vectors
 
-    def _data_check(self):
+    def _data_check(self) -> None:
         if self.slave_address > 0xF:
             _raise_out_of_range_error("Slave address", "0x0", "0xF", "0x{:02X}".format(self.slave_address))
         if self.register_address > self.register_address_limit:
             _raise_out_of_range_error("Register address", "0x00", "0x{:02X}".format(self.register_address_limit),
                                       "0x{:02X}".format(self.register_address))
 
-    def _create_waveforms(self, session: nidigital.Session):
+    def _create_waveforms(self, session: nidigital.Session) -> None:
         session.pins[self._pin].create_source_waveform_serial(self.name, _DataMapping.BROADCAST.value, 1,
                                                               _BitOrder.MSB_FIRST.value)
 
@@ -135,32 +135,32 @@ class _RffeCommand:
         data_frame = self._build_data_frame()
         return command_frame + address_frame + data_frame
 
-    def _write_source_waveform(self, session: nidigital.Session, waveform_data: list):
+    def _write_source_waveform(self, session: nidigital.Session, waveform_data: list) -> None:
         session.write_source_waveform_broadcast(self.name, waveform_data)
 
     def _build_command_frame(self) -> list:
-        pass
+        return []
 
     def _build_address_frame(self) -> list:
-        pass
+        return []
 
     def _build_data_frame(self) -> list:
-        pass
+        return []
 
     def _generate_header_vectors(self) -> list:
-        pass
+        return []
 
     def _generate_command_frame_vectors(self) -> list:
-        pass
+        return []
 
     def _generate_address_frame_vectors(self) -> list:
-        pass
+        return []
 
     def _generate_data_frame_vectors(self) -> list:
-        pass
+        return []
 
     def _raise_required_override_error(self, func: object):
-        raise RffeException(5000, f"Developer error.\nOverride required for {func} by {self}.")
+        raise RffeException(5000, f"Developer error. Override required for {func} by {self}.")
 
 
 class _RffeReg0WriteCommand(_RffeCommand):
@@ -197,18 +197,18 @@ class __RffeExtendedCommand(_RffeCommand):
         return self._raise_required_override_error(self.byte_count)
 
     @property
-    def register_data(self):
+    def register_data(self) -> list:
         return self._register_data
 
     @property
-    def byte_count_field_width(self):
+    def byte_count_field_width(self) -> int:
         return 8 - self.command_field_width
 
     @property
-    def byte_count_limit(self):
+    def byte_count_limit(self) -> int:
         return 1 << self.byte_count_field_width
 
-    def _data_check(self):
+    def _data_check(self) -> None:
         super()._data_check()
         if self.byte_count not in range(1, self.byte_count_limit + 1):
             _raise_out_of_range_error("Byte count", '1', str(self.byte_count_limit), str(self.byte_count))
@@ -217,7 +217,7 @@ class __RffeExtendedCommand(_RffeCommand):
         slave_address_bits = _int_to_bits(self.slave_address, 4)
         byte_count_bits = _int_to_bits(self.byte_count - 1, self.byte_count_field_width)
         parity_bit = _calculate_odd_parity_bit(slave_address_bits + self._command_bits + byte_count_bits)
-        return slave_address_bits + byte_count_bits + parity_bit
+        return slave_address_bits + byte_count_bits + [parity_bit]
 
     def _build_address_frame(self) -> list:
         num_bytes = self.register_address_field_width >> 3
@@ -233,12 +233,12 @@ class __RffeExtendedCommand(_RffeCommand):
             index = index + 1
         return address_frame
 
-    def _write_source_waveform(self, session: nidigital.Session, waveform_data: list):
+    def _write_source_waveform(self, session: nidigital.Session, waveform_data: list) -> None:
         super()._write_source_waveform(session, waveform_data)
         session.write_sequencer_register("reg0", self.byte_count)
 
 
-class _RffeExtendedRegisterWriteCommand(__RffeExtendedCommand):
+class _RffeRegWriteExtCommand(__RffeExtendedCommand):
     @property
     def name(self) -> str:
         return "RegWriteExt"
@@ -263,11 +263,11 @@ class _RffeExtendedRegisterWriteCommand(__RffeExtendedCommand):
         return data_frame
 
 
-class _RffeExtendedRegisterWriteLongCommand(_RffeExtendedRegisterWriteCommand):
+class _RffeRegWriteExtLongCommand(_RffeRegWriteExtCommand):
     pass
 
 
-class _RffeExtendedRegisterReadCommand(__RffeExtendedCommand):
+class _RffeRegReadExtCommand(__RffeExtendedCommand):
     def __init__(self, slave_address: int, register_address: int, byte_count: int, alias=""):
         super().__init__(slave_address, register_address, [], alias)
         self.__byte_count = byte_count
@@ -284,21 +284,21 @@ class _RffeExtendedRegisterReadCommand(__RffeExtendedCommand):
     def byte_count(self) -> int:
         return self.__byte_count
 
-    def _create_waveforms(self, session: nidigital.Session):
+    def _create_waveforms(self, session: nidigital.Session) -> None:
         super()._create_waveforms(session)
-        session.pins[super()._pin].create_capture_waveform_serial(self.name, 8, _BitOrder.MSB_FIRST.value)
+        session.pins[self._pin].create_capture_waveform_serial(self.name, 8, _BitOrder.MSB_FIRST.value)
 
-    def burst(self, session: nidigital.Session, bus_number=0):
+    def burst(self, session: nidigital.Session, bus_number=0) -> None:
         super().burst(session, bus_number)
         capture_data = session.fetch_capture_waveform(_format_site_list(bus_number), self.name, self.byte_count, 10)
-        super()._register_data = list(capture_data[0])
+        self._register_data = list(capture_data[0])
 
 
-class _RffeExtendedRegisterReadLongCommand(_RffeExtendedRegisterReadCommand):
+class _RffeRegReadExtLongCommand(_RffeRegReadExtCommand):
     pass
 
 
-def load_digital_project(session: nidigital.Session):
+def load_digital_project(session: nidigital.Session) -> None:
     digital_project_directory = _get_digital_project_directory()
     pin_map_path = os.path.join(digital_project_directory, "PinMap.pinmap")
     session.load_pin_map(pin_map_path)
@@ -334,12 +334,12 @@ def disable_vio(session: nidigital.Session, bus_number=0):
 
 def extended_register_write(session: nidigital.Session, slave_address: int, register_address: int,
                             register_data: list, bus_number=0):
-    command = _RffeExtendedRegisterWriteCommand(slave_address, register_address, register_data)
+    command = _RffeRegWriteExtCommand(slave_address, register_address, register_data)
     command.burst(session, bus_number)
 
 
 def extended_register_read(session: nidigital.Session, slave_address: int, register_address: int,
                            byte_count: int, bus_number=0):
-    command = _RffeExtendedRegisterReadCommand(slave_address, register_address, byte_count)
+    command = _RffeRegReadExtCommand(slave_address, register_address, byte_count)
     command.burst(session, bus_number)
     return command.register_data
