@@ -329,7 +329,7 @@ def disable_vio(session: nidigital.Session, bus_number=0):
         channel_list = "RFFEVIO"
     else:
         channel_list = f"site{bus_number}/RFFEVIO"
-    session.channels[channel_list].selected_function = nidigital.SelectedFunction.OFF.value
+    session.channels[channel_list].selected_function = nidigital.SelectedFunction.OFF
 
 
 def extended_register_write(session: nidigital.Session, slave_address: int, register_address: int,
