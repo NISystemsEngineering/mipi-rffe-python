@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<SourceFile Checksum="16650FFF7F643DC1B5613E44D271D3B0" xmlns="http://www.ni.com/PlatformFramework">
+<SourceFile Checksum="510BE40A46B4426281793B85DDB73125" xmlns="http://www.ni.com/PlatformFramework">
 	<SourceModelFeatureSet>
 		<ParsableNamespace AssemblyFileVersion="5.3.1.52024" FeatureSetName="Digital Pattern Editor" Name="http://www.ni.com/PatternBasedDigital" OldestCompatibleVersion="4.5.0.0" Version="4.6.0.49152" />
 		<ParsableNamespace AssemblyFileVersion="5.3.1.52024" FeatureSetName="Editor" Name="http://www.ni.com/PlatformFramework" OldestCompatibleVersion="5.2.0.49153" Version="5.2.0.49153" />
@@ -16,16 +16,13 @@
 			<FileReference Id="15" ModelDefinitionType="TimingDefinition" Name="Timing\.digitiming" StoragePath="Timing.digitiming" p4:IsActive="True" xmlns:p4="http://www.ni.com/PatternBasedDigital" />
 			<FileReference Id="16" ModelDefinitionType="PinLevelsDefinition" Name="PinLevels\.digilevels" StoragePath="PinLevels.digilevels" p4:IsActive="True" xmlns:p4="http://www.ni.com/PatternBasedDigital" />
 			<FileReference Id="24" ModelDefinitionType="SpecificationsDefinition" Name="Specifications\.specs" StoragePath="Specifications.specs" />
-			<FileReference Id="37" ModelDefinitionType="SourceWaveformDefinition" Name="SourceWaveform_RegWriteExt\.tdms" StoragePath="SourceWaveform_RegWriteExt.tdms" />
-			<FileReference Id="71" ModelDefinitionType="CaptureWaveformDefinition" Name="CaptureWaveform_RegReadExt\.digicapture" StoragePath="CaptureWaveform_RegReadExt.digicapture" />
-			<FileReference Id="72" ModelDefinitionType="SourceWaveformDefinition" Name="SourceWaveform_RegReadExt\.tdms" StoragePath="SourceWaveform_RegReadExt.tdms" />
-			<FileReference Id="93" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RFFE_Reg0Write\.digipat" StoragePath="RFFE Command Patterns\RFFE_Reg0Write.digipat" />
-			<FileReference Id="94" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RFFE_RegRead\.digipat" StoragePath="RFFE Command Patterns\RFFE_RegRead.digipat" />
-			<FileReference Id="95" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RFFE_RegWriteExt\.digipat" StoragePath="RFFE Command Patterns\RFFE_RegWriteExt.digipat" />
-			<FileReference Id="96" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RFFE_RegWriteExtLong\.digipat" StoragePath="RFFE Command Patterns\RFFE_RegWriteExtLong.digipat" />
-			<FileReference Id="97" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RFFE_RegWrite\.digipat" StoragePath="RFFE Command Patterns\RFFE_RegWrite.digipat" />
-			<FileReference Id="98" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RFFE_RegReadExtLong\.digipat" StoragePath="RFFE Command Patterns\RFFE_RegReadExtLong.digipat" />
-			<FileReference Id="99" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RFFE_RegReadExt\.digipat" StoragePath="RFFE Command Patterns\RFFE_RegReadExt.digipat" />
+			<FileReference Id="93" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="Reg0Write\.digipat" StoragePath="Reg0Write.digipat" />
+			<FileReference Id="94" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RegRead\.digipat" StoragePath="RegRead.digipat" />
+			<FileReference Id="95" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RegWriteExt\.digipat" StoragePath="RegWriteExt.digipat" />
+			<FileReference Id="96" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RegWriteExtLong\.digipat" StoragePath="RegWriteExtLong.digipat" />
+			<FileReference Id="97" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RegWrite\.digipat" StoragePath="RegWrite.digipat" />
+			<FileReference Id="98" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RegReadExtLong\.digipat" StoragePath="RegReadExtLong.digipat" />
+			<FileReference Id="99" ModelDefinitionType="DigitalPatternEditor.PatternDefinition" Name="RegReadExt\.digipat" StoragePath="RegReadExt.digipat" />
 			<EmbeddedDefinitionReference Id="100" ModelDefinitionType="{http://www.ni.com/PatternBasedDigital}CaptureResultsDefinition" Name="CaptureResults">
 				<CaptureResultsDefinition xmlns="http://www.ni.com/PatternBasedDigital" />
 			</EmbeddedDefinitionReference>
