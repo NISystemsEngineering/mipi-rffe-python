@@ -52,27 +52,9 @@ def _raise_out_of_range_error(parameter_name: str, lower_limit: str, upper_limit
 
 
 class _RffeCommand:
-    def __init__(self, slave_address: int, register_address: int, alias=""):
-        self.__alias = alias
-        self.__pin = "RFFEDATA"
-        self.__slave_address = slave_address
-        self.__register_address = register_address
-
     @property
     def name(self) -> str:
         return self._raise_required_override_error(self.name)
-
-    @property
-    def command(self) -> int:
-        return self._raise_required_override_error(self.command)
-
-    @property
-    def command_field_width(self) -> int:
-        return self._raise_required_override_error(self.command_field_width)
-
-    @property
-    def register_address_field_width(self) -> int:
-        return self._raise_required_override_error(self.register_address_field_width)
 
     @property
     def alias(self) -> str:
@@ -81,10 +63,6 @@ class _RffeCommand:
     @property
     def _pin(self) -> str:
         return self.__pin
-
-    @property
-    def _command_bits(self) -> list:
-        return _int_to_bits(self.command, self.command_field_width)
 
     @property
     def slave_address(self) -> int:
@@ -99,8 +77,30 @@ class _RffeCommand:
         return self.__register_address
 
     @property
+    def register_address_field_width(self) -> int:
+        return self._raise_required_override_error(self.register_address_field_width)
+
+    @property
     def register_address_limit(self) -> int:
         return (1 << self.register_address_field_width) - 1
+
+    @property
+    def command(self) -> int:
+        return self._raise_required_override_error(self.command)
+
+    @property
+    def command_field_width(self) -> int:
+        return self._raise_required_override_error(self.command_field_width)
+
+    @property
+    def _command_bits(self) -> list:
+        return _int_to_bits(self.command, self.command_field_width)
+
+    def __init__(self, slave_address: int, register_address: int, alias=""):
+        self.__alias = alias
+        self.__pin = "RFFEDATA"
+        self.__slave_address = slave_address
+        self.__register_address = register_address
 
     def burst(self, session: nidigital.Session, bus_number=0) -> None:
         self._data_check()
@@ -160,7 +160,7 @@ class _RffeCommand:
         return []
 
     def _raise_required_override_error(self, func: object):
-        raise RffeException(5000, f"Developer error. Override required for {func} by {self}.")
+                raise RffeException(5000, f"Developer error. Override required for {func} by {self}.")
 
 
 class _RffeReg0WriteCommand(_RffeCommand):
@@ -179,26 +179,22 @@ class _RffeRegReadCommand(_RffeStandardCommand):
     pass
 
 
-class __RffeExtendedCommand(_RffeCommand):
-    def __init__(self, slave_address: int, register_address: int, register_data: list, alias=""):
-        super().__init__(slave_address, register_address, alias)
-        self._register_data = register_data
+class _RffeExtendedCommand(_RffeCommand):
+    @property
+    def register_address_field_width(self) -> int:
+        return 8
 
     @property
     def command_field_width(self) -> int:
         return 4
 
     @property
-    def register_address_field_width(self) -> int:
-        return 8
+    def register_data(self) -> list:
+        return self._register_data
 
     @property
     def byte_count(self) -> int:
         return self._raise_required_override_error(self.byte_count)
-
-    @property
-    def register_data(self) -> list:
-        return self._register_data
 
     @property
     def byte_count_field_width(self) -> int:
@@ -207,6 +203,10 @@ class __RffeExtendedCommand(_RffeCommand):
     @property
     def byte_count_limit(self) -> int:
         return 1 << self.byte_count_field_width
+
+    def __init__(self, slave_address: int, register_address: int, register_data: list, alias=""):
+        super().__init__(slave_address, register_address, alias)
+        self._register_data = register_data
 
     def _data_check(self) -> None:
         super()._data_check()
@@ -222,15 +222,13 @@ class __RffeExtendedCommand(_RffeCommand):
     def _build_address_frame(self) -> list:
         num_bytes = self.register_address_field_width >> 3
         address_frame = [0] * (self.register_address_field_width + num_bytes)
-        index = 0
         for i in range(num_bytes):
             shift_amount = (num_bytes - 1 - i) << 3
             shifted_register_address = self.register_address >> shift_amount
             shifted_register_address_bits = _int_to_bits(shifted_register_address, 8)
-            address_frame[index:index + 8] = shifted_register_address_bits
-            index = index + 8
-            address_frame[index] = _calculate_odd_parity_bit(shifted_register_address_bits)
-            index = index + 1
+            offset = i << 3 + i
+            address_frame[offset:offset + 8] = shifted_register_address_bits
+            address_frame[offset + 8] = _calculate_odd_parity_bit(shifted_register_address_bits)
         return address_frame
 
     def _write_source_waveform(self, session: nidigital.Session, waveform_data: list) -> None:
@@ -238,7 +236,7 @@ class __RffeExtendedCommand(_RffeCommand):
         session.write_sequencer_register("reg0", self.byte_count)
 
 
-class _RffeRegWriteExtCommand(__RffeExtendedCommand):
+class _RffeRegWriteExtCommand(_RffeExtendedCommand):
     @property
     def name(self) -> str:
         return "RegWriteExt"
@@ -253,13 +251,11 @@ class _RffeRegWriteExtCommand(__RffeExtendedCommand):
 
     def _build_data_frame(self) -> list:
         data_frame = [0] * (self.byte_count * 9)
-        index = 0
-        for data in self.register_data:
-            data_bits = _int_to_bits(data, 8)
-            data_frame[index:index + 8] = data_bits
-            index = index + 8
-            data_frame[index] = _calculate_odd_parity_bit(data_bits)
-            index = index + 1
+        for i in range(len(self.register_data)):
+            data_bits = _int_to_bits(self.register_data[i], 8)
+            offset = i << 3 + i
+            data_frame[offset:offset + 8] = data_bits
+            data_frame[offset + 8] = _calculate_odd_parity_bit(data_bits)
         return data_frame
 
 
@@ -267,11 +263,7 @@ class _RffeRegWriteExtLongCommand(_RffeRegWriteExtCommand):
     pass
 
 
-class _RffeRegReadExtCommand(__RffeExtendedCommand):
-    def __init__(self, slave_address: int, register_address: int, byte_count: int, alias=""):
-        super().__init__(slave_address, register_address, [], alias)
-        self.__byte_count = byte_count
-
+class _RffeRegReadExtCommand(_RffeExtendedCommand):
     @property
     def name(self) -> str:
         return "RegReadExt"
@@ -283,6 +275,10 @@ class _RffeRegReadExtCommand(__RffeExtendedCommand):
     @property
     def byte_count(self) -> int:
         return self.__byte_count
+
+    def __init__(self, slave_address: int, register_address: int, byte_count: int, alias=""):
+        super().__init__(slave_address, register_address, [], alias)
+        self.__byte_count = byte_count
 
     def _create_waveforms(self, session: nidigital.Session) -> None:
         super()._create_waveforms(session)
